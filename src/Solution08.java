@@ -1,9 +1,13 @@
+import java.io.BufferedWriter;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -21,7 +25,6 @@ public class Solution08 {
         // URL 리스트를 자체를 파일로 저장
         saveUrlList(urlList, keyword);
         // 이미지를 파일 형태로 각각 다운로드
-        // github actions를 사용해서 외부에서 다운로드 받을 수 있게
     }
 
     private static void saveUrlList(List<String> urlList, String keyword) {
@@ -29,8 +32,20 @@ public class Solution08 {
                 URLEncoder.encode(keyword, StandardCharsets.UTF_8),
                 ZonedDateTime.now(
                                 ZoneId.of("Asia/Seoul"))
-                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss"))
+                        .format(java.time.format.DateTimeFormatter.ofPattern(
+                                "yyyy-MM-dd_HHmmss"))
         );
+        Path path = Paths.get(fileName);
+        try (BufferedWriter writer = Files.newBufferedWriter(path)) {
+//            writer.write(String.join("\n", urlList));
+            for (String url : urlList) {
+                // \ -> 생략해버림. \\ <- 문자로 인식함
+                writer.write(url.replace("\\/", "/"));
+                writer.newLine();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static List<String> getImageUrlList(String keyword) {
